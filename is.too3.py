@@ -1,6 +1,6 @@
 #Jarno Orusalu
 #18.12.2023
-
+import random
 #Ülikooli vastuvõetud
 fail = open("rebased.txt", encoding="UTF-8")
 
@@ -28,10 +28,31 @@ Näide programmi tööst:
 Näiteks antud näitefaili konto.txt puhul peab ekraanile ilmuma
 """
 
-fail = open("konto.txt", encoding="UTF-8")
+#fail = open("konto.txt", encoding="UTF-8")
+#for rida in fail:
+    #print(float(rida))
+
+
+#fail.close()
+
+#Jukebox
+failinimi = input("Palun Sisestage failinime: ")
+fail = open(failinimi, encoding="utf-8")
+nr = 1
+
 for rida in fail:
-    if float(rida) > 0:
-        print(float(rida))
+    print(f"{nr}. {rida}", end="")
+    nr+=1
+
+nr = 1
+jk = int(input("\Valige laulu järjekorranumber: "))
+
+for rida in fail:
+    if nr==jk :
+    print(f"mängitav muusikapala on: {rida}.")
+    nr+=1
+
+#Tahvli juurde
 
 
-fail.close()
+fail = open ("nimekiri.txt")
