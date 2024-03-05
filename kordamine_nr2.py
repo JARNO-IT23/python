@@ -3,6 +3,8 @@ from tkinter import messagebox
 import csv
 import os
 from uuid import uuid4
+from tkinter import filedialog
+
 
 
 class StudentManagementSystem:
@@ -42,7 +44,17 @@ class StudentManagementSystem:
         self.btn_delete_student.grid(row=10, column=0, columnspan=2)
 
     def upload_image(self):
-        pass
+        # Lae üles pilt ja kuvab see GUI-s
+        file_path = filedialog.askopenfilename(title="Vali pilt", filetypes=[("Pildifailid", "*.png;*.jpg;*.jpeg")])
+        if file_path:
+            image = image.resize((150, 150), Image.ANTIALIAS)
+            self.photo = ImageTk.PhotoImage(image)
+            self.image_label.config(image=self.photo)
+            self.image_label.image = self.photo
+            self.image_path = file_path
+
+    
+        
 
     def add_student(self):
         name = self.entry_name.get()
@@ -55,16 +67,18 @@ class StudentManagementSystem:
     def show_students(self):
         for student in self.students:
             print(f"ID: {student['id']}, Nimi: {student['name']}, Kursus: {student['course']}, Pilt: {student['image']}")
-
     def save_data(self):
-        filename = "students_data.csv"
-        with open(filename, mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["ID", "Nimi", "Kursus", "Pilt"])
-            for student in self.students:
-                writer.writerow([student["id"], student["name"], student["course"], student["image"]])
-        messagebox.showinfo("Info", "Andmed on edukalt salvestatud!")
-
+        filename = self.ask_file_to_save()
+        if filename:
+            with open(filename, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow(["ID", "Nimi", "Kursus", "Pilt"])
+                for student in self.students:
+                    writer.writerow([student["id"], student["name"], student["course"], student["image_path"]])
+            messagebox.showinfo("Info", "Andmed on edukalt salvestatud!")
+    def ask_file_to_save(self):
+        return filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV failid", "*.csv")])
+       
     def search_by_id(self):
         search_id = self.entry_id.get()
         for student in self.students:
@@ -73,10 +87,8 @@ class StudentManagementSystem:
                 break
         else:
             messagebox.showinfo("Info", "Õpilast ID-ga {} ei leitud.".format(search_id))
-
     def edit_student(self):
         pass
-
     def delete_student(self):
         pass
 
@@ -84,4 +96,4 @@ class StudentManagementSystem:
 if __name__ == "__main__":
     root = tk.Tk()
     app = StudentManagementSystem(root)
-    root.mainloop()
+    root.mainloop()     
