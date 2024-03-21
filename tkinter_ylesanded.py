@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 import csv
 import os
+from PIL import Image
+
 
 
 class StudentManagementSystem:
@@ -36,8 +38,9 @@ class StudentManagementSystem:
 
         ttk.Button(input_frame, text="Lisa Õpilane", command=self.add_student).grid(row=4, column=0, columnspan=3, pady=10)
         ttk.Button(input_frame, text="Muuda Õpilane", command=self.edit_student).grid(row=5, column=0, columnspan=3, pady=10)
-        ttk.Button(input_frame, text="Salvesta Muudatused", command=self.save_changes).grid(row=5, column=4, columnspan=3, pady=10)
-        ttk.Button(input_frame, text="Kustuta Õpilane", command=self.delete_student).grid(row=6, column=0, columnspan=3, pady=10)
+        ttk.Button(input_frame, text="Salvesta Muudatused", command=self.save_changes).grid(row=6, column=0, columnspan=3, pady=10)
+        ttk.Button(input_frame, text="Kustuta Õpilane", command=self.delete_student).grid(row=7, column=0, columnspan=3, pady=10)
+
         display_frame = ttk.LabelFrame(self.root, text="Andmete Kuvamine")
         display_frame.grid(row=1, column=0, padx=10, pady=10, sticky="w")
 
@@ -46,7 +49,7 @@ class StudentManagementSystem:
         for col in columns:
             self.tree.heading(col, text=col)
         self.tree.grid(row=0, column=0, padx=5, pady=5)
-       
+        self.tree.bind("<ButtonRelease-1>", self.show_selected_student_image)
 
         self.refresh_treeview()
 
@@ -60,9 +63,12 @@ class StudentManagementSystem:
                 student = (student_id, name, id_code, course, image_path)
                 self.students.append(student)
 
-            image_extension = os.path.splitext(image_path)[1]
-            image_save_path = f"{id_code}{image_extension.lower()}"
-            self.save_image(image_path, image_save_path)
+            if image_path:
+                image_extension = os.path.splitext(image_path)[1]
+                image_save_path = f"{id_code}{image_extension.lower()}"
+                self.save_image(image_path, image_save_path)
+            else:
+                print("Pilti ei laaditud. Pilti ei salvestatud.")
 
             self.save_to_csv()
             self.refresh_treeview()
@@ -86,16 +92,13 @@ class StudentManagementSystem:
             self.course_entry.insert(0, current_student[3])
             self.image_path.set(current_student[4])
 
-            ttk.Button(input_frame, text="Lisa Õpilane", command=lambda: self.add_student(edit_index=index)).grid(row=4, column=0, columnspan=3, pady=10)
-    
     def save_changes(self):
         selected_item = self.tree.selection()
         if selected_item:
             student_id = self.tree.item(selected_item, "values")[0]
             index = int(student_id) - 1
             self.add_student(edit_index=index)
-    
-    
+
     def delete_student(self):
         selected_item = self.tree.selection()
         if selected_item:
@@ -121,6 +124,22 @@ class StudentManagementSystem:
 
         if not file_exists:
             print(f"Loon uue faili: {file_path}")
+    
+    
+    def show_selected_student_image(self, event):
+        selected_item = self.tree.selection()
+        if selected_item:
+            student_id = self.tree.item(selected_item, "values")[0]
+            index = int(student_id) - 1
+            current_student = self.students[index]
+            image_path = current_student[4]
+            if os.path.exists(image_path):
+                image = Image.open(image_path)
+                image.show()
+            else:
+                print("Pildifaili ei leitud.")
+
+
 
     def save_image(self, source_path, dest_path):
         try:
@@ -136,8 +155,44 @@ class StudentManagementSystem:
                 reader = csv.reader(file)
                 next(reader)
                 for row in reader:
-                    self.students.append(tuple(row))
+                    self.students.append(tuple(row))                            
+    def save_changes(self):
+        selected_item = self.tree.selection()
+        if selected_item:
+            student_id = self.tree.item(selected_item, "values")[0]
+            index = int(student_id) - 1
+            self.add_student(edit_index=index)
+    
+    
+    def delete_student(self):
+        selected_item = self.tree.selection()
+        if selected_item:
+            student_id = self.tree.item(selected_item, "values")[0]
+            index = int(student_id) - 1
+            self.students.pop(index)
+            self.save_to_csv()
+            self.refresh_treeview()
 
+
+    def save_to_csv(self):
+        file_path = "students.csv"
+        file_exists = os.path.exists(file_path)
+
+        with open(file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["ID", "Nimi", "Isikukood", "Kursus", "Pilt"])
+            for student in self.students:
+                writer.writerow(student)
+
+        if not file_exists:
+            print(f"Loon uue faili: {file_path}")
+
+    def save_image(self, source_path, dest_path):
+        try:
+            image = Image.open(source_path)
+            image.save(dest_path)
+        except Exception as e:
+            print(f"Error saving image: {e}")
     def refresh_treeview(self):
         for item in self.tree.get_children():
             self.tree.delete(item)
